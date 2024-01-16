@@ -4,24 +4,34 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,13 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
@@ -43,93 +58,39 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.avicodes.calorietrackerai.R
+import com.avicodes.calorietrackerai.presentation.components.CalorieProgressInfo
 import com.avicodes.calorietrackerai.utils.dashedBorder
 
 @Composable
 fun HomeContent(
     modifier: Modifier,
     homeUiState: HomeUiState,
+    totalCaloriesCount: Int,
     requestCalorie: (List<Uri>) -> Unit,
     discardClicked: () -> Unit,
-    addClicked: () -> Unit,
+    addClicked: (Int) -> Unit,
 ) {
 
     var imageUri = remember {
         mutableListOf<Uri>()
     }
 
-    val multiplePhotoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-    ) { image ->
-        if (image != null) {
-            imageUri.add(image)
-            requestCalorie(imageUri)
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         when (homeUiState) {
             is HomeUiState.Initial -> {
-                Column {
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .background(
-                                    color = Color.Red,
-                                    shape = RoundedCornerShape(20.dp)
-                                )
-                                .height(50.dp)
-                                .padding(10.dp),
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_calorie),
-                                contentDescription = "Calorie Icon",
-                                colorFilter = ColorFilter.tint(Color.White)
-                            )
-
-                            Column(
-                                modifier = Modifier.fillMaxHeight(),
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "4343",
-                                    textAlign = TextAlign.Center,
-                                    style = TextStyle(
-                                        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                                        fontWeight = FontWeight.Normal,
-                                        color = Color.White,
-                                    ),
-                                )
-                            }
-
-                        }
+                showHomeInitialState(
+                    addImage = { image ->
+                        imageUri.clear()
+                        imageUri.add(image)
+                        requestCalorie(imageUri)
                     }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    selectFoodImages(
-                        selectImagesClicked = {
-                            multiplePhotoPicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )
-                        }
-                    )
-                }
-
+                )
             }
 
             is HomeUiState.Loading -> {
@@ -138,12 +99,11 @@ fun HomeContent(
                         selectedImageList = imageUri
                     )
                 }
-
             }
 
             is HomeUiState.Success -> {
                 showCalorieResult(
-                    calorie = homeUiState.outputText,
+                    currentCalorieCount = homeUiState.outputText,
                     discardClicked = discardClicked,
                     addClicked = addClicked
                 )
@@ -159,14 +119,97 @@ fun HomeContent(
                 }
             }
         }
+
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                .padding(vertical = 20.dp)
+        ) {
+            Text(
+                text = "Today's Progress",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            CalorieProgressInfo()
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(shape = RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                    .padding(vertical = 20.dp, horizontal = 20.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "History Icon"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Edit Goal",
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+
+            Spacer(modifier = Modifier.width(20.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(shape = RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+                    .padding(vertical = 20.dp, horizontal = 20.dp)
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "History Icon"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Show Diet History",
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+            
+        }
+
+
+
     }
 }
 
 @Composable
 fun showCalorieResult(
-    calorie: String,
+    currentCalorieCount: String,
     discardClicked: () -> Unit,
-    addClicked: () -> Unit,
+    addClicked: (Int) -> Unit,
 ) {
     Column {
         Card(
@@ -176,7 +219,7 @@ fun showCalorieResult(
             shape = MaterialTheme.shapes.large,
         ) {
             Text(
-                text = "$calorie Calories",
+                text = "$currentCalorieCount Calories",
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
@@ -203,7 +246,13 @@ fun showCalorieResult(
             )
 
             Button(
-                onClick = addClicked,
+                onClick = {
+                    addClicked(
+                        currentCalorieCount
+                            .replace("[^0-9]".toRegex(), "")
+                            .toIntOrNull() ?: 0
+                    )
+                },
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.weight(1f),
             ) {
@@ -211,6 +260,37 @@ fun showCalorieResult(
             }
         }
     }
+}
+
+@Composable
+fun showHomeInitialState(
+    addImage: (Uri) -> Unit,
+) {
+
+    val multiplePhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { image ->
+        if (image != null) {
+            addImage(image)
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Top
+    ) {
+
+        selectFoodImages(
+            selectImagesClicked = {
+                multiplePhotoPicker.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+            }
+        )
+
+    }
+
 }
 
 @Composable
@@ -256,7 +336,6 @@ fun showImagesScan(
 
 @Composable
 fun selectFoodImages(
-    modifier: Modifier = Modifier,
     selectImagesClicked: () -> Unit
 ) {
     val animationFoodComposition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.food_animation))
@@ -299,5 +378,20 @@ fun selectFoodImages(
         ) {
             Text(text = "Select Images")
         }
+    }
+}
+
+@Preview
+@Composable
+fun showHomeContent() {
+    Scaffold { paddingValues ->
+        HomeContent(
+            modifier = Modifier.padding(paddingValues),
+            homeUiState = HomeUiState.Initial,
+            addClicked = {},
+            discardClicked = {},
+            requestCalorie = {},
+            totalCaloriesCount = 0
+        )
     }
 }

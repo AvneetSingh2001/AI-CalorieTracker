@@ -20,6 +20,12 @@ class HomeViewModel : ViewModel() {
     val homeUiState =
         _homeUiState.asStateFlow()
 
+    private val _calories: MutableStateFlow<Int>
+        = MutableStateFlow(0)
+
+    val calories =
+        _calories.asStateFlow()
+
     private var generativeModel: GenerativeModel
 
     init {
@@ -62,7 +68,8 @@ class HomeViewModel : ViewModel() {
         _homeUiState.value = HomeUiState.Initial
     }
 
-    fun addCalorie() {
+    fun addCalorie(currentCalorieCount: Int) {
         _homeUiState.value = HomeUiState.Initial
+        _calories.value = _calories.value.plus(currentCalorieCount)
     }
 }

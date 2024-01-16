@@ -29,6 +29,7 @@ fun HomeScreen(
     val scrollState = rememberScrollState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val homeUiState = viewModel.homeUiState.collectAsState()
+    val totalCaloriesCount = viewModel.calories.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val imageRequestBuilder = ImageRequest.Builder(LocalContext.current)
     val imageLoader = ImageLoader.Builder(LocalContext.current).build()
@@ -66,9 +67,10 @@ fun HomeScreen(
                 discardClicked = {
                     viewModel.discardedCalorie()
                 },
-                addClicked = {
-                    viewModel.addCalorie()
+                addClicked = { currentCalorieCount ->
+                    viewModel.addCalorie(currentCalorieCount = currentCalorieCount)
                 },
+                totalCaloriesCount = totalCaloriesCount.value
             )
         }
     )
