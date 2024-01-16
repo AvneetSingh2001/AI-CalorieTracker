@@ -24,7 +24,7 @@ class HomeViewModel : ViewModel() {
 
     init {
         val config = generationConfig {
-            temperature = 0.7f
+            temperature = 0.1f
         }
 
         generativeModel = GenerativeModel(
@@ -36,8 +36,9 @@ class HomeViewModel : ViewModel() {
 
     fun requestCalories(selectedImages: List<Bitmap>) {
         _homeUiState.value = HomeUiState.Loading
-        val prompt = "what is this?"
+        val prompt = "Exactly how much calories does this food is? if its a packet, then search the calorie of food according to packet size, if its some utensil container, take that in account to calculate the precise calorie. give the exact calorie count, in numbers, only give me number, no other text"
 
+        var output = ""
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val content = content {
@@ -47,7 +48,6 @@ class HomeViewModel : ViewModel() {
                     text(prompt)
                 }
 
-                var output = ""
                 generativeModel.generateContentStream(content).collect { res ->
                     output += res.text
                     _homeUiState.value = HomeUiState.Success(output)
@@ -58,5 +58,11 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    fun discardedCalorie() {
+        _homeUiState.value = HomeUiState.Initial
+    }
 
+    fun addCalorie() {
+        _homeUiState.value = HomeUiState.Initial
+    }
 }
