@@ -36,15 +36,14 @@ fun HomeScreen(
 
     Scaffold(
         modifier = Modifier.scrollable(scrollState, Orientation.Vertical),
-        topBar = {
-            HomeScreenTopBar(
-                scrollBehavior = scrollBehavior
-            )
-        },
+        topBar = { HomeScreenTopBar(scrollBehavior = scrollBehavior) },
         content = { paddingValues ->
             HomeContent(
                 modifier = Modifier.padding(paddingValues),
                 homeUiState = homeUiState.value,
+                discardClicked = { viewModel.discardedCalorie() },
+                addClicked = { viewModel.addCalorie(currentCalorieCount = it) },
+                totalCaloriesCount = totalCaloriesCount.value,
                 requestCalorie = { imageList ->
                     coroutineScope.launch {
                         val bitmaps = imageList.mapNotNull {
@@ -64,13 +63,6 @@ fun HomeScreen(
                         viewModel.requestCalories(selectedImages = bitmaps)
                     }
                 },
-                discardClicked = {
-                    viewModel.discardedCalorie()
-                },
-                addClicked = { currentCalorieCount ->
-                    viewModel.addCalorie(currentCalorieCount = currentCalorieCount)
-                },
-                totalCaloriesCount = totalCaloriesCount.value
             )
         }
     )

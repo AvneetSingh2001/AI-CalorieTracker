@@ -70,10 +70,7 @@ fun HomeContent(
     discardClicked: () -> Unit,
     addClicked: (Int) -> Unit,
 ) {
-
-    var imageUri = remember {
-        mutableListOf<Uri>()
-    }
+    var imageUri = remember { mutableListOf<Uri>() }
 
     Column(
         modifier = modifier
@@ -81,7 +78,6 @@ fun HomeContent(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         when (homeUiState) {
             is HomeUiState.Initial -> {
                 showHomeInitialState(
@@ -92,7 +88,6 @@ fun HomeContent(
                     }
                 )
             }
-
             is HomeUiState.Loading -> {
                 if (imageUri.size > 0) {
                     showImagesScan(
@@ -100,7 +95,6 @@ fun HomeContent(
                     )
                 }
             }
-
             is HomeUiState.Success -> {
                 showCalorieResult(
                     currentCalorieCount = homeUiState.outputText,
@@ -108,7 +102,6 @@ fun HomeContent(
                     addClicked = addClicked
                 )
             }
-
             is HomeUiState.Error -> {
                 Card(
                     modifier = Modifier

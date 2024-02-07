@@ -13,3 +13,9 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 
+
+val BrunchColor = Color(0xFF26A69A)
+val SnacksColor = Color(0xFFFFEE58)
+val BreakfastColor = Color(0xFF42A5F5)
+val DinnerColor = Color(0xFF7E57C2)
+val LunchColor = Color(0xFF26C6DA)
