@@ -1,5 +1,6 @@
 package com.avicodes.calorietrackerai.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,14 +43,14 @@ import java.util.Date
 import java.util.Locale
 
 
-@Preview(showSystemUi = true)
 @Composable
 fun DietHolder(
-    diet: Diet = Diet(),
+    diet: Diet,
     onClick: (String) -> Unit = {}
 ) {
     val localDensity = LocalDensity.current
     var componentHeight by remember { mutableStateOf(0.dp) }
+    var galleryOpened by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -76,7 +78,7 @@ fun DietHolder(
             tonalElevation = Elevation.Level1
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                DietHeader(mealName = diet.meal, time = Instant.now())
+                DietHeader(mealName = diet.meal, time = diet.date)
                 Text(
                     modifier = Modifier.padding(all = 14.dp),
                     text = diet.description,
@@ -84,11 +86,22 @@ fun DietHolder(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (diet.images.isNotEmpty()) {
+                    ShowGalleryButton(
+                        galleryOpened = galleryOpened,
+                        galleryLoading = false,
+                        onClick = {}
+                    )
+                }
+                AnimatedVisibility(visible = galleryOpened) {
+                    Column(modifier = Modifier.padding(all = 14.dp)) {
+                        Gallery(images = diet.images)
+                    }
+                }
             }
         }
     }
 }
-
 
 @Composable
 fun DietHeader(mealName: String, time: Instant) {
@@ -120,4 +133,31 @@ fun DietHeader(mealName: String, time: Instant) {
             style = TextStyle(fontSize = MaterialTheme.typography.bodyMedium.fontSize)
         )
     }
+}
+
+@Composable
+fun ShowGalleryButton(
+    galleryOpened: Boolean,
+    galleryLoading: Boolean,
+    onClick: () -> Unit
+) {
+    TextButton(onClick = onClick) {
+        Text(
+            text = if (galleryOpened)
+                if (galleryLoading) "Loading" else "Hide Gallery"
+            else "Show Gallery",
+            style = TextStyle(fontSize = MaterialTheme.typography.bodySmall.fontSize)
+        )
+    }
+}
+
+
+@Composable
+@Preview
+fun DietHolderPreview() {
+    DietHolder(
+        diet = Diet(
+            description = "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum"
+        )
+    )
 }

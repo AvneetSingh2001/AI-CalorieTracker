@@ -10,7 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun HistoryScreen(onBackClicked: () -> Unit) {
     Scaffold(
         topBar = { HistoryTopBar(onBackClicked = onBackClicked) },
-        content = { HistoryContent() }
+        content = { HistoryContent(diets = mapOf(), onClick = {}) }
     )
 }
 
