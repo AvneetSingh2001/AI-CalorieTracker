@@ -38,7 +38,7 @@ fun NavGraphBuilder.homeRoute() {
 fun NavGraphBuilder.historyRoute(
     onBackClicked: () -> Unit
 ) {
-    composable(route = Screen.Home.route) {
+    composable(route = Screen.DietHistory.route) {
         HistoryScreen(
             onBackClicked = onBackClicked
         )
@@ -47,7 +47,7 @@ fun NavGraphBuilder.historyRoute(
 
 fun NavGraphBuilder.uploadRoute() {
     composable(
-        route = Screen.Home.route,
+        route = Screen.DietUpload.route,
         arguments = listOf(navArgument(name = UPLOAD_SCREEN_ARGUMENT_KEY) {
             type = NavType.StringType
             nullable = true

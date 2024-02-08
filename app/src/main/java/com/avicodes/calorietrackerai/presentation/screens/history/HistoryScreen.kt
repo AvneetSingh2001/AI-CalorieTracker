@@ -5,16 +5,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HistoryScreen(onBackClicked: () -> Unit) {
     Scaffold(
         topBar = { HistoryTopBar(onBackClicked = onBackClicked) },
-        content = { HistoryContent(diets = mapOf(), onClick = {}) }
+        content = { HistoryContent(diets = mapOf(), onClick = {}, paddingValues = it) }
     )
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 fun HistoryScreenPreview() {
     HistoryScreen(

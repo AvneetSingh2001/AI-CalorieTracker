@@ -1,10 +1,14 @@
 package com.avicodes.calorietrackerai.presentation.screens.history
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -17,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.avicodes.calorietrackerai.models.Diet
 import com.avicodes.calorietrackerai.presentation.components.DietHolder
@@ -27,12 +31,17 @@ import java.time.LocalDate
 @Composable
 fun HistoryContent(
     diets: Map<LocalDate, List<Diet>>,
+    paddingValues: PaddingValues,
     onClick: (String) -> Unit
 ) {
     if (diets.isNotEmpty()) {
         LazyColumn(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
+                .padding(top = paddingValues.calculateTopPadding())
+                .padding(bottom = paddingValues.calculateBottomPadding())
+                .padding(start = paddingValues.calculateStartPadding(LayoutDirection.Ltr))
+                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))
         ) {
             diets.forEach { (localDate, diet) ->
                 stickyHeader(key = localDate) {
@@ -50,7 +59,12 @@ fun HistoryContent(
 
 @Composable
 fun DateHeader(localDate: LocalDate = LocalDate.now()) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 14.dp)
+            .background(MaterialTheme.colorScheme.surface),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = String.format("%02d", localDate.dayOfMonth),
@@ -116,10 +130,4 @@ fun EmptyPage(
             )
         )
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun HistoryContentPreview() {
-    HistoryContent(diets = mapOf(), onClick = {})
 }
