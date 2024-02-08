@@ -1,54 +1,45 @@
 package com.avicodes.calorietrackerai.presentation.screens.history
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.runtime.Composable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import com.avicodes.calorietrackerai.models.Diet
-import com.avicodes.calorietrackerai.presentation.components.DietHolder
+import androidx.compose.ui.tooling.preview.Preview
+import com.avicodes.calorietrackerai.models.Meal
+import com.avicodes.calorietrackerai.presentation.components.MealHolder
 import java.time.LocalDate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryContent(
-    diets: Map<LocalDate, List<Diet>>,
     paddingValues: PaddingValues,
+    meals: Map<LocalDate, List<Meal>>,
     onClick: (String) -> Unit
 ) {
-    if (diets.isNotEmpty()) {
+    if (meals.isNotEmpty()) {
         LazyColumn(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
+                .navigationBarsPadding()
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(bottom = paddingValues.calculateBottomPadding())
-                .padding(start = paddingValues.calculateStartPadding(LayoutDirection.Ltr))
-                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))
         ) {
-            diets.forEach { (localDate, diet) ->
+            meals.forEach { (localDate, meal) ->
                 stickyHeader(key = localDate) {
                     DateHeader(localDate = localDate)
                 }
-                items(items = diet, key = { it.id }) {
-                    DietHolder(diet = it, onClick = onClick)
+                items(
+                    items = meal,
+                    key = { it.id }
+                ) {
+                    MealHolder(meal = it, onClick = onClick)
                 }
             }
         }
@@ -58,11 +49,12 @@ fun HistoryContent(
 }
 
 @Composable
-fun DateHeader(localDate: LocalDate = LocalDate.now()) {
+fun DateHeader(localDate: LocalDate) {
     Row(
         modifier = Modifier
-            .padding(vertical = 14.dp)
-            .background(MaterialTheme.colorScheme.surface),
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(horizontalAlignment = Alignment.End) {
@@ -85,7 +77,7 @@ fun DateHeader(localDate: LocalDate = LocalDate.now()) {
         Column(horizontalAlignment = Alignment.Start) {
             Text(
                 text = localDate.month.toString().lowercase()
-                    .replaceFirstChar { it.uppercase() },
+                    .replaceFirstChar { it.titlecase() },
                 style = TextStyle(
                     fontSize = MaterialTheme.typography.titleLarge.fontSize,
                     fontWeight = FontWeight.Light
@@ -93,7 +85,7 @@ fun DateHeader(localDate: LocalDate = LocalDate.now()) {
             )
             Text(
                 text = "${localDate.year}",
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                 style = TextStyle(
                     fontSize = MaterialTheme.typography.bodySmall.fontSize,
                     fontWeight = FontWeight.Light
@@ -105,8 +97,8 @@ fun DateHeader(localDate: LocalDate = LocalDate.now()) {
 
 @Composable
 fun EmptyPage(
-    title: String = "No History",
-    subtitle: String = "Get Started with uploading your meals!"
+    title: String = "No Meals!",
+    subtitle: String = "Start Uploading your diet"
 ) {
     Column(
         modifier = Modifier
@@ -130,4 +122,10 @@ fun EmptyPage(
             )
         )
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun DateHeaderPreview() {
+    DateHeader(localDate = LocalDate.now())
 }

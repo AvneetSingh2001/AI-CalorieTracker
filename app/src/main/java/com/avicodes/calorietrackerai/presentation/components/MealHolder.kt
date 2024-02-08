@@ -1,5 +1,6 @@
 package com.avicodes.calorietrackerai.presentation.components
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -24,7 +25,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,37 +35,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.avicodes.calorietrackerai.models.Diet
 import com.avicodes.calorietrackerai.models.Meal
+import com.avicodes.calorietrackerai.models.MealName
 import com.avicodes.calorietrackerai.ui.theme.Elevation
-import java.text.SimpleDateFormat
 import java.time.Instant
-import java.util.Date
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 
 @Composable
-fun DietHolder(
-    diet: Diet,
-    onClick: (String) -> Unit = {}
-) {
+fun MealHolder(meal: Meal, onClick: (String) -> Unit) {
     val localDensity = LocalDensity.current
-    var componentHeight by remember { mutableStateOf(0.dp) }
     var galleryOpened by remember { mutableStateOf(false) }
+    var galleryLoading by remember { mutableStateOf(false) }
+    val downloadedImages = remember { mutableStateListOf<Uri>() }
+    var componentHeight by remember { mutableStateOf(0.dp) }
+    val context = LocalContext.current
 
-    Row(
-        modifier = Modifier
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() },
-                onClick = { onClick.invoke(diet.id) }
-            )
+    Row(modifier = Modifier
+        .clickable(
+            indication = null,
+            interactionSource = remember {
+                MutableInteractionSource()
+            }
+        ) { onClick(meal.id) }
     ) {
         Spacer(modifier = Modifier.width(14.dp))
         Surface(
@@ -71,8 +75,7 @@ fun DietHolder(
                 .height(componentHeight + 14.dp),
             tonalElevation = Elevation.Level1
         ) {}
-        Spacer(modifier = Modifier.width(14.dp))
-
+        Spacer(modifier = Modifier.width(20.dp))
         Surface(
             modifier = Modifier
                 .clip(shape = Shapes().medium)
@@ -82,23 +85,26 @@ fun DietHolder(
             tonalElevation = Elevation.Level1
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                DietHeader(mealName = diet.meal, time = diet.date)
+                DiaryHeader(mealName = meal.mealName, time = meal.date)
                 Text(
                     modifier = Modifier.padding(all = 14.dp),
-                    text = diet.description,
+                    text = meal.description,
                     style = TextStyle(fontSize = MaterialTheme.typography.bodyLarge.fontSize),
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (diet.images.isNotEmpty()) {
+                if (meal.images.isNotEmpty()) {
                     ShowGalleryButton(
                         galleryOpened = galleryOpened,
-                        galleryLoading = false,
-                        onClick = {}
+                        onClick = {
+                            galleryOpened = !galleryOpened
+                        },
+                        galleryLoading = galleryLoading
                     )
                 }
+
                 AnimatedVisibility(
-                    visible = galleryOpened,
+                    visible = galleryOpened && !galleryLoading,
                     enter = fadeIn() + expandVertically(
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -107,7 +113,7 @@ fun DietHolder(
                     )
                 ) {
                     Column(modifier = Modifier.padding(all = 14.dp)) {
-                        Gallery(images = diet.images)
+                        Gallery(images = downloadedImages)
                     }
                 }
             }
@@ -116,12 +122,16 @@ fun DietHolder(
 }
 
 @Composable
-fun DietHeader(mealName: String, time: Instant) {
-    val meal by remember { mutableStateOf(Meal.valueOf(mealName)) }
+fun DiaryHeader(mealName: String, time: Instant) {
+    val mood by remember { mutableStateOf(MealName.valueOf(mealName)) }
+    val formatter = remember {
+        DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+            .withZone(ZoneId.systemDefault())
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Meal.valueOf(mealName).containerColor)
+            .background(mood.containerColor)
             .padding(horizontal = 14.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -129,19 +139,19 @@ fun DietHeader(mealName: String, time: Instant) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 modifier = Modifier.size(18.dp),
-                painter = painterResource(id = meal.icon),
-                contentDescription = null
+                painter = painterResource(id = mood.icon),
+                contentDescription = "Mood Icon",
             )
             Spacer(modifier = Modifier.width(7.dp))
             Text(
-                text = meal.name,
-                color = meal.contentColor,
+                text = mood.name,
+                color = mood.contentColor,
                 style = TextStyle(fontSize = MaterialTheme.typography.bodyMedium.fontSize)
             )
         }
         Text(
-            text = SimpleDateFormat("hh:mm a", Locale.US).format(Date.from(time)),
-            color = meal.contentColor,
+            text = formatter.format(time),
+            color = mood.contentColor,
             style = TextStyle(fontSize = MaterialTheme.typography.bodyMedium.fontSize)
         )
     }
@@ -166,10 +176,14 @@ fun ShowGalleryButton(
 
 @Composable
 @Preview
-fun DietHolderPreview() {
-    DietHolder(
-        diet = Diet(
-            description = "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum"
-        )
+fun MealHolderPreview() {
+    MealHolder(
+        meal = Meal().apply {
+            description =
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+            mealName = MealName.Breakfast.name
+            images = listOf("", "")
+        },
+        onClick = {}
     )
 }

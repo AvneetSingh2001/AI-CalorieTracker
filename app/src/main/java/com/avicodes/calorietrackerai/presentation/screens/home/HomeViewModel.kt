@@ -73,3 +73,16 @@ class HomeViewModel : ViewModel() {
         _calories.value = _calories.value.plus(currentCalorieCount)
     }
 }
+
+sealed interface HomeUiState {
+    object Initial : HomeUiState
+    object Loading : HomeUiState
+
+    data class Error(
+        val errorMessage: String
+    ) : HomeUiState
+
+    data class Success(
+        val outputText: String
+    ) : HomeUiState
+}

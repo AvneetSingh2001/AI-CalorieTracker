@@ -36,7 +36,7 @@ fun HomeScreen(
 
     Scaffold(
         modifier = Modifier.scrollable(scrollState, Orientation.Vertical),
-        topBar = { HomeScreenTopBar(scrollBehavior = scrollBehavior) },
+        topBar = { HomeTopBar(scrollBehavior = scrollBehavior) },
         content = { paddingValues ->
             HomeContent(
                 modifier = Modifier.padding(paddingValues),
