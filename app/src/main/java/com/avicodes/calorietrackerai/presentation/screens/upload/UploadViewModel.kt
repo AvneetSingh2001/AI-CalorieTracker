@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.avicodes.calorietrackerai.BuildConfig
 import com.avicodes.calorietrackerai.models.Meal
 import com.avicodes.calorietrackerai.models.MealName
+import com.avicodes.calorietrackerai.utils.getCurrentMeal
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
@@ -103,7 +104,7 @@ data class UploadUiState(
     var calories: String? = null,
     var selectedMeal: Meal? = null,
     var description: String = "",
-    val mealName: MealName = MealName.Breakfast,
+    val mealName: MealName = getCurrentMeal(),
     var images: List<Bitmap> = listOf(),
     val updatedDateTime: Instant? = null
 )

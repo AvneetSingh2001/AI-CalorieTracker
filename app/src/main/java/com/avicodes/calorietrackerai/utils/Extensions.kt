@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.avicodes.calorietrackerai.models.MealName
+import java.time.LocalTime
 
 fun Modifier.dashedBorder(
     color: Color,
@@ -41,4 +43,17 @@ fun Modifier.dashedBorder(
         style = stroke,
         color = color
     )
+}
+
+
+fun getCurrentMeal(): MealName {
+    val currentTime = LocalTime.now()
+    return when {
+        currentTime.isBefore(LocalTime.of(4, 0)) -> MealName.Dinner
+        currentTime.isBefore(LocalTime.of(10, 0)) -> MealName.Breakfast
+        currentTime.isBefore(LocalTime.of(12, 0)) -> MealName.Brunch
+        currentTime.isBefore(LocalTime.of(15, 0)) -> MealName.Lunch
+        currentTime.isBefore(LocalTime.of(18, 0)) -> MealName.Snacks
+        else -> MealName.Dinner
+    }
 }
