@@ -21,10 +21,10 @@ import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    navigateToUpload: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -44,32 +44,12 @@ fun HomeScreen(
                 discardClicked = { viewModel.discardedCalorie() },
                 addClicked = { viewModel.addCalorie(currentCalorieCount = it) },
                 totalCaloriesCount = totalCaloriesCount.value,
-                requestCalorie = { imageList ->
-                    coroutineScope.launch {
-                        val bitmaps = imageList.mapNotNull {
-                            val imageRequest = imageRequestBuilder
-                                .data(it)
-                                .size(size = 768)
-                                .build()
-
-                            val imageResult = imageLoader.execute(imageRequest)
-                            if (imageResult is SuccessResult) {
-                                return@mapNotNull (imageResult.drawable as BitmapDrawable).bitmap
-                            } else {
-                                return@mapNotNull null
-                            }
-                        }
-
-                        viewModel.requestCalories(selectedImages = bitmaps)
-                    }
-                },
+                navigateToUpload = navigateToUpload,
             )
         }
     )
 
 }
-
-
 
 
 

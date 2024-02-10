@@ -1,5 +1,6 @@
 package com.avicodes.calorietrackerai.presentation.screens.upload
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -33,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -49,21 +52,16 @@ import com.google.accompanist.pager.PagerState
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun UploadContent(
-    uiState: UiState,
+    uploadUiState: UploadUiState,
     pagerState: PagerState,
-    calories: Int,
-    onTitleChanged: (String) -> Unit,
-    description: String,
     onDescriptionChanged: (String) -> Unit,
     paddingValues: PaddingValues,
-    onSaveClicked: (Meal) -> Unit,
-    galleryState: GalleryState,
-    onImageSelect: (Uri) -> Unit,
-    onImageClicked: (GalleryImage) -> Unit
+    onSaveClicked: () -> Unit,
+    onImageSelect: (List<Uri>) -> Unit,
+    onImageClicked: (Bitmap) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(key1 = scrollState.maxValue) {
@@ -100,39 +98,29 @@ fun UploadContent(
                     contentDescription = "Meal Image"
                 )
             }
+
             Spacer(modifier = Modifier.height(30.dp))
+
+            if(uploadUiState.calories != null) {
+                Card(
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Text(
+                        text = "${uploadUiState.calories} Calories",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
             TextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = calories.toString(),
-                onValueChange = onTitleChanged,
-                placeholder = { Text(text = "Title") },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Unspecified,
-                    disabledIndicatorColor = Color.Unspecified,
-                    unfocusedIndicatorColor = Color.Unspecified,
-                    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                ),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        scope.launch {
-                            scrollState.animateScrollTo(Int.MAX_VALUE)
-                        }
-                        focusManager.moveFocus(focusDirection = FocusDirection.Down)
-                    }
-                ),
-                maxLines = 1,
-                singleLine = true,
-                enabled = false
-            )
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = description,
+                value = uploadUiState.description,
                 onValueChange = onDescriptionChanged,
                 placeholder = { Text(text = "Tell me about it.") },
                 colors = TextFieldDefaults.colors(
@@ -158,7 +146,7 @@ fun UploadContent(
         Column(verticalArrangement = Arrangement.Bottom) {
             Spacer(modifier = Modifier.height(12.dp))
             GalleryUploader(
-                galleryState = galleryState,
+                images = uploadUiState.images,
                 onAddClicked = {
                     focusManager.clearFocus()
                 },
@@ -171,14 +159,8 @@ fun UploadContent(
                     .fillMaxWidth()
                     .height(54.dp),
                 onClick = {
-                    if (uiState.mealCalories != null && uiState.description.isNotEmpty()) {
-                        onSaveClicked(
-                            Meal().apply {
-                                this.calories = uiState.mealCalories
-                                this.description = uiState.description
-                                this.images = galleryState.images.map { it.remoteImagePath }
-                            }
-                        )
+                    if (uploadUiState.calories != null && uploadUiState.description.isNotEmpty()) {
+                        onSaveClicked()
                     } else {
                         Toast.makeText(
                             context,

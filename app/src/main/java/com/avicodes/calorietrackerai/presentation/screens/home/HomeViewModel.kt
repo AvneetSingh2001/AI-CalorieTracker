@@ -26,43 +26,9 @@ class HomeViewModel : ViewModel() {
     val calories =
         _calories.asStateFlow()
 
-    private var generativeModel: GenerativeModel
 
-    init {
-        val config = generationConfig {
-            temperature = 0.1f
-        }
 
-        generativeModel = GenerativeModel(
-            modelName = "gemini-pro-vision",
-            apiKey = BuildConfig.gemini_api_key,
-            generationConfig = config
-        )
-    }
 
-    fun requestCalories(selectedImages: List<Bitmap>) {
-        _homeUiState.value = HomeUiState.Loading
-        val prompt = "Exactly how much calories does this food is? if its a packet, then search the calorie of food according to packet size, if its some utensil container, take that in account to calculate the precise calorie. give the exact calorie count, in numbers, only give me number, no other text"
-
-        var output = ""
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val content = content {
-                    for(bitmap in selectedImages) {
-                        image(bitmap)
-                    }
-                    text(prompt)
-                }
-
-                generativeModel.generateContentStream(content).collect { res ->
-                    output += res.text
-                    _homeUiState.value = HomeUiState.Success(output)
-                }
-            } catch (e: Exception) {
-                _homeUiState.value = HomeUiState.Error(e.message ?: "Something went wrong :(")
-            }
-        }
-    }
 
     fun discardedCalorie() {
         _homeUiState.value = HomeUiState.Initial

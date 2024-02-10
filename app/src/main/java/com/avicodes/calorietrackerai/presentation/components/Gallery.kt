@@ -1,6 +1,8 @@
 package com.avicodes.calorietrackerai.presentation.components
 
+import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
@@ -90,24 +93,16 @@ fun Gallery(
 @Composable
 fun GalleryUploader(
     modifier: Modifier = Modifier,
-    galleryState: GalleryState,
+    images: List<Bitmap>,
     imageSize: Dp = 60.dp,
     imageShape: CornerBasedShape = Shapes().medium,
     spaceBetween: Dp = 12.dp,
     onAddClicked: () -> Unit,
-    onImageSelect: (Uri) -> Unit,
-    onImageClicked: (GalleryImage) -> Unit,
+    onImageSelect: (List<Uri>) -> Unit,
+    onImageClicked: (Bitmap) -> Unit,
 ) {
-    val multiplePhotoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 8),
-    ) { images ->
-        images.forEach {
-            onImageSelect(it)
-        }
-    }
-
     BoxWithConstraints(modifier = modifier) {
-        val numberOfVisibleImages = remember {
+        val numberOfVisibleImages = remember(images) {
             derivedStateOf {
                 max(
                     a = 0,
@@ -115,35 +110,29 @@ fun GalleryUploader(
                 )
             }
         }
-
-        val remainingImages = remember {
+        val remainingImages = remember(images) {
             derivedStateOf {
-                galleryState.images.size - numberOfVisibleImages.value
+                images.size - numberOfVisibleImages.value
             }
         }
-
+        Log.e("Avneet", "${images.size.toString()}  $numberOfVisibleImages  $remainingImages")
         Row {
             AddImageButton(
+                onImageSelect = onImageSelect,
                 imageSize = imageSize,
                 imageShape = imageShape,
-                onClick = {
-                    onAddClicked()
-                    multiplePhotoPicker.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
-                }
+                onAddClicked = onAddClicked,
+                images = images
             )
             Spacer(modifier = Modifier.width(spaceBetween))
-            galleryState.images.take(numberOfVisibleImages.value).forEach { galleryImage ->
+            images.take(numberOfVisibleImages.value).forEach { galleryImage ->
                 AsyncImage(
                     modifier = Modifier
                         .clip(imageShape)
                         .size(imageSize)
                         .clickable { onImageClicked(galleryImage) },
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(galleryImage.image)
+                        .data(galleryImage)
                         .crossfade(true)
                         .build(),
                     contentScale = ContentScale.Crop,
@@ -164,15 +153,36 @@ fun GalleryUploader(
 
 @Composable
 fun AddImageButton(
+    onImageSelect: (List<Uri>) -> Unit,
+    images: List<Bitmap>,
     imageSize: Dp,
     imageShape: CornerBasedShape,
-    onClick: () -> Unit
+    onAddClicked: () -> Unit
 ) {
+
+    val multiplePhotoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 8),
+    ) { images ->
+        onImageSelect(images)
+    }
+
     Surface(
         modifier = Modifier
             .size(imageSize)
             .clip(shape = imageShape),
-        onClick = onClick,
+        onClick = {
+            if(images.isEmpty()) {
+                onAddClicked()
+                multiplePhotoPicker.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+            } else {
+                onImageSelect(listOf())
+                onAddClicked()
+            }
+        },
         tonalElevation = Elevation.Level1
     ) {
         Box(
@@ -180,7 +190,7 @@ fun AddImageButton(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = if(images.isEmpty()) Icons.Default.Add else Icons.Default.Close,
                 contentDescription = "Add Icon",
             )
         }

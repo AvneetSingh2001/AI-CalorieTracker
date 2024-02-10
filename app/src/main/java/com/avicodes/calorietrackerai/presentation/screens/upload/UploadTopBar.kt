@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.avicodes.calorietrackerai.models.Meal
+import com.avicodes.calorietrackerai.models.MealName
 import com.avicodes.calorietrackerai.presentation.components.DisplayAlertDialog
 import com.avicodes.calorietrackerai.presentation.screens.history.BackButton
 import com.avicodes.calorietrackerai.presentation.screens.history.DateRangeButton

@@ -1,28 +1,18 @@
 package com.avicodes.calorietrackerai.presentation.screens.home
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -39,14 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,7 +49,7 @@ fun HomeContent(
     modifier: Modifier,
     homeUiState: HomeUiState,
     totalCaloriesCount: Int,
-    requestCalorie: (List<Uri>) -> Unit,
+    navigateToUpload: () -> Unit,
     discardClicked: () -> Unit,
     addClicked: (Int) -> Unit,
 ) {
@@ -80,37 +63,10 @@ fun HomeContent(
     ) {
         when (homeUiState) {
             is HomeUiState.Initial -> {
-                showHomeInitialState(
-                    addImage = { image ->
-                        imageUri.clear()
-                        imageUri.add(image)
-                        requestCalorie(imageUri)
-                    }
-                )
+                selectFoodImages(selectImagesClicked = navigateToUpload)
             }
-            is HomeUiState.Loading -> {
-                if (imageUri.size > 0) {
-                    showImagesScan(
-                        selectedImageList = imageUri
-                    )
-                }
-            }
-            is HomeUiState.Success -> {
-                showCalorieResult(
-                    currentCalorieCount = homeUiState.outputText,
-                    discardClicked = discardClicked,
-                    addClicked = addClicked
-                )
-            }
-            is HomeUiState.Error -> {
-                Card(
-                    modifier = Modifier
-                        .padding(vertical = 16.dp)
-                        .fillMaxWidth(), shape = MaterialTheme.shapes.large
-                ) {
-                    Text(text = homeUiState.errorMessage, modifier = Modifier.padding(16.dp))
-                }
-            }
+
+           else -> {}
         }
 
 
@@ -190,9 +146,8 @@ fun HomeContent(
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-            
-        }
 
+        }
 
 
     }
@@ -256,78 +211,6 @@ fun showCalorieResult(
 }
 
 @Composable
-fun showHomeInitialState(
-    addImage: (Uri) -> Unit,
-) {
-
-    val multiplePhotoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-    ) { image ->
-        if (image != null) {
-            addImage(image)
-        }
-    }
-
-    Column(
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        selectFoodImages(
-            selectImagesClicked = {
-                multiplePhotoPicker.launch(
-                    PickVisualMediaRequest(
-                        ActivityResultContracts.PickVisualMedia.ImageOnly
-                    )
-                )
-            }
-        )
-
-    }
-
-}
-
-@Composable
-fun showImagesScan(
-    selectedImageList: List<Uri>,
-) {
-
-    val animationScanComposition by rememberLottieComposition(spec = LottieCompositionSpec.RawRes(R.raw.animation_scanning))
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-
-    ) {
-
-        Column(
-            modifier = Modifier
-                .height(300.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = selectedImageList[0],
-                contentDescription = "selected image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .requiredSize(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-        }
-
-        LottieAnimation(
-            modifier = Modifier
-                .height(300.dp)
-                .fillMaxWidth(),
-            composition = animationScanComposition,
-            iterations = LottieConstants.IterateForever
-        )
-    }
-
-}
-
-@Composable
 fun selectFoodImages(
     selectImagesClicked: () -> Unit
 ) {
@@ -383,7 +266,7 @@ fun showHomeContent() {
             homeUiState = HomeUiState.Initial,
             addClicked = {},
             discardClicked = {},
-            requestCalorie = {},
+            navigateToUpload = {},
             totalCaloriesCount = 0
         )
     }
