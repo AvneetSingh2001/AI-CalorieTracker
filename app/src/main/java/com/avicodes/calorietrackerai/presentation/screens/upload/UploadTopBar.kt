@@ -23,7 +23,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.avicodes.calorietrackerai.models.Meal
-import com.avicodes.calorietrackerai.models.MealName
 import com.avicodes.calorietrackerai.presentation.components.DisplayAlertDialog
 import com.avicodes.calorietrackerai.presentation.screens.history.BackButton
 import com.avicodes.calorietrackerai.presentation.screens.history.DateRangeButton
@@ -38,7 +37,6 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,9 +68,9 @@ fun UploadTopBar(
 
     val selectedMealDateTime = remember(selectedMeal) {
         if (selectedMeal != null) {
-            DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.getDefault())
-                .withZone(ZoneId.systemDefault())
-                .format(selectedMeal.date)
+//            DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.getDefault())
+//                .withZone(ZoneId.systemDefault())
+//                .format(selectedMeal.date)
         } else "Unknown"
     }
 
@@ -95,11 +93,11 @@ fun UploadTopBar(
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = if (selectedMeal != null && dateTimeUpdated) "$formattedDate, $formattedTime"
-                    else if (selectedMeal != null) selectedMealDateTime
-                    else "$formattedDate, $formattedTime",
                     style = TextStyle(fontSize = MaterialTheme.typography.bodySmall.fontSize),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    text = if (selectedMeal != null && dateTimeUpdated) "$formattedDate, $formattedTime"
+                    else if (selectedMeal != null) "$selectedMealDateTime"
+                    else "$formattedDate, $formattedTime",
                 )
             }
         },

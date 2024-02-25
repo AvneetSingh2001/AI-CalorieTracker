@@ -85,7 +85,7 @@ fun MealHolder(meal: Meal, onClick: (String) -> Unit) {
             tonalElevation = Elevation.Level1
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                DiaryHeader(mealName = meal.mealName, time = meal.date)
+                DiaryHeader(mealName = meal.mealName, time = Instant.now())
                 Text(
                     modifier = Modifier.padding(all = 14.dp),
                     text = meal.description,
